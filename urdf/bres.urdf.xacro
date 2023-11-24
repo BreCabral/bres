@@ -5,7 +5,7 @@
     <xacro:property name="Elo1_theta" value="livre" />
     <xacro:property name="Elo1_alfa" value="${pi}" />
     <xacro:property name="Elo1_a" value="0" />
-    <xacro:property name="Elo1_d" value="0.5" />
+    <xacro:property name="Elo1_d" value="0.33" />
     
     <xacro:property name="Elo2_theta" value="0" />
     <xacro:property name="Elo2_alfa" value="0" />
@@ -19,14 +19,14 @@
     
     <xacro:property name="Elo4_theta" value="livre" />
     <xacro:property name="Elo4_alfa" value="0" />
-    <xacro:property name="Elo4_a" value="0.25" />
+    <xacro:property name="Elo4_a" value="0.13" />
     <xacro:property name="Elo4_d" value="0.1" />
 
     <!-- Medidas de colisao -->
     <xacro:property name="RaioBase" value="0.1000" />
     <xacro:property name="AlturaBase" value="0.1000" />
 
-    <xacro:property name="AlturaOmbro" value="0.3000" />
+    <xacro:property name="AlturaOmbro" value="0.2500" />
     <xacro:property name="larguraOmbro" value="0.1100" />
     <xacro:property name="ComprimentoOmbro" value="0.1500" />
 
@@ -40,6 +40,9 @@
     <xacro:property name="larguraFerramenta" value="0.0500" />
     <xacro:property name="ComprimentoFerramenta" value="0.0500" />
 
+    <!-- Escala para arquivos .STL -->
+    <xacro:property name="EscalaSTL" value="0.001 0.001 0.001" />
+
     <material name="blue">
     <color rgba="0 0 0.8 1"/>
     </material>
@@ -47,10 +50,10 @@
     <link name="base_link">
         <visual>
             <geometry>
-                <mesh filename="package://bres/meshes/3d_base.stl"/>
+                <mesh filename="package://bres/meshes/Base.stl" scale="${EscalaSTL}" />
             </geometry>
             <material name="blue"/>
-            <origin xyz="0 0 ${AlturaBase/2}" />
+            <origin xyz="0 0 ${AlturaBase/2}" rpy="0 0 ${pi/2}" />
         </visual>
         <collision>
             <geometry>
@@ -64,11 +67,18 @@
     <link name="Ombro">
         <visual>
             <geometry>
+                <mesh filename="package://bres/meshes/Eixo_Z.stl" scale="${EscalaSTL}" />
+            </geometry>
+            <material name="blue"/>
+            <origin xyz="0 0 ${AlturaOmbro}" rpy="${pi} 0 ${pi/2}" />
+        </visual>
+        <collision>
+            <geometry>
                 <box size="${ComprimentoOmbro} ${larguraOmbro} ${AlturaOmbro}"/>
             </geometry>
             <material name="blue"/>
             <origin xyz="0 0 ${AlturaOmbro/2}" />
-        </visual>
+        </collision>
     </link>
 
     <!-- Junta 1 -->
@@ -83,11 +93,18 @@
     <link name="Braco">
         <visual>
             <geometry>
+                <mesh filename="package://bres/meshes/Braco.stl" scale="${EscalaSTL}" />
+            </geometry>
+            <material name="blue"/>
+            <origin xyz="${0.05-Elo2_a} 0 ${AlturaBraco}" rpy="${pi} 0 ${-pi/2}" />
+        </visual>
+        <collision>
+            <geometry>
                 <cylinder radius="${RaioBraco}" length="${AlturaBraco}"/>
             </geometry>
             <material name="blue"/>
             <origin xyz="0 0 ${AlturaBraco/2}" />
-        </visual>
+        </collision>
     </link>
 
    <!-- Junta 2 -->
@@ -102,11 +119,18 @@
     <link name="Antebraco">
         <visual>
             <geometry>
+                <mesh filename="package://bres/meshes/Antebraco.stl" scale="${EscalaSTL}" />
+            </geometry>
+            <material name="blue"/>
+            <origin xyz="${Elo3_a} 0 0" rpy="${pi} 0 ${-pi/2}" />
+        </visual>
+        <collision>
+            <geometry>
                 <cylinder radius="${RaioAntebraco}" length="${AlturaAntebraco}"/>
             </geometry>
             <material name="blue"/>
             <origin xyz="0 0 ${AlturaAntebraco/2}" />
-        </visual>
+        </collision>
     </link>
 
     <!-- Junta 3 -->
@@ -124,8 +148,15 @@
                 <box size="${ComprimentoFerramenta} ${larguraFerramenta} ${AlturaFerramenta}"/>
             </geometry>
             <material name="blue"/>
-            <origin xyz="0 0 ${AlturaFerramenta/2}" />
+            <origin xyz="0 0 ${-AlturaFerramenta/2}" />
         </visual>
+        <collision>
+            <geometry>
+                <box size="${ComprimentoFerramenta} ${larguraFerramenta} ${AlturaFerramenta}"/>
+            </geometry>
+            <material name="blue"/>
+            <origin xyz="0 0 ${AlturaFerramenta/2}" />
+        </collision>
     </link>
 
     <!-- Junta 4 -->
