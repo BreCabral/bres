@@ -53,15 +53,17 @@ class MotorHandle():
         self.motor_conectado = RpiMotorLib.A4988Nema(self.dir, self.step, (led,led,led), "DRV8825")
 
     def rotacao(self, angulo):
-        if (angulo == 0):
-            return print("sem movimentacao")
+        if (abs(angulo) == 0):
+            return 0
         elif (angulo > 0):
             direcao = True
+            mul_dir = 1
         elif (angulo < 0):
             direcao = False
+            mul_dir = -1
         qtd_passos_mover = int(abs(angulo)/self.angulo_por_passo)
-        self.motor_conectado.motor_go(direcao,"1/4",200,0.005,True,0.05)
-        return (qtd_passos_mover*self.angulo_por_passo)
+        self.motor_conectado.motor_go(direcao,"1/4",qtd_passos_mover,0.005,False,0.05)
+        return (qtd_passos_mover*self.angulo_por_passo*mul_dir)
 
 
 class MinimalSubscriber(Node):
@@ -74,16 +76,42 @@ class MinimalSubscriber(Node):
             self.listener_callback,
             10)
         self.subscription  # prevent unused variable warning
+
+        self.motor1 = MotorHandle(motor=1, angulo_por_passo=(0.45/4))
+        self.motor2 = MotorHandle(motor=2, angulo_por_passo=(0.45))
+        self.motor3 = MotorHandle(motor=3, angulo_por_passo=(0.45/4))
+        self.motor4 = MotorHandle(motor=4, angulo_por_passo=(0.45/4))
+
         self.m1_pos_goal = 0
         self.m2_pos_goal = 0
         self.m3_pos_goal = 0
         self.m4_pos_goal = 0
 
+        self.m1_pos_atual = 0
+        self.m2_pos_atual = 0
+        self.m3_pos_atual = 0
+        self.m4_pos_atual = 0
+
     def listener_callback(self, msg):
-        self.m1_pos_goal = msg.position[0]
-        self.m2_pos_goal = msg.position[1]
-        self.m3_pos_goal = msg.position[2]
-        self.m4_pos_goal = msg.position[3]
+
+        self.m1_pos_goal = self.rad_to_deg(msg.position[0])
+        self.m2_pos_goal = self.rad_to_deg(msg.position[1])
+        self.m3_pos_goal = self.rad_to_deg(msg.position[2])
+        self.m4_pos_goal = self.rad_to_deg(msg.position[3])
+
+        diferenca_m1 = (self.m1_pos_goal-self.m1_pos_atual)
+        diferenca_m2 = (self.m2_pos_goal-self.m2_pos_atual)
+        diferenca_m3 = (self.m3_pos_goal-self.m3_pos_atual)
+        diferenca_m4 = (self.m4_pos_goal-self.m4_pos_atual)
+
+        self.m1_pos_atual += self.motor1.rotacao(diferenca_m1)
+        self.m2_pos_atual += self.motor1.rotacao(diferenca_m2)
+        self.m3_pos_atual += self.motor1.rotacao(diferenca_m3)
+        self.m4_pos_atual += self.motor1.rotacao(diferenca_m4)
+
+    def rad_to_deg(self, rad):
+        deg = (rad*180)/3.14159
+        return deg
 
 
 def main(args=None):
