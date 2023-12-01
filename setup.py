@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'talker = bres.teste:main',
+                'talos = bres.MainNode:main',
         ],
     },
 )
