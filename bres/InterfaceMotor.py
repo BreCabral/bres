@@ -23,8 +23,9 @@ gpio.output(potencia, gpio.HIGH)
 
 class MotorHandle():
 
-    def __init__(self, motor=1, angulo_por_passo=0.45):
+    def __init__(self, motor=1, angulo_por_passo=0.45, deslocamento_por_passo=0.01):
         self.angulo_por_passo = angulo_por_passo
+        self.deslocamento_por_passo = deslocamento_por_passo
         self.step = m1_step
         self.dir = m1_dir
         self.conectarGPIO(motor)
@@ -55,20 +56,25 @@ class MotorHandle():
         elif (angulo < 0):
             direcao = False
         qtd_passos_mover = int(abs(angulo)/self.angulo_por_passo)
-        self.motor_conectado.motor_go(direcao,"1/4",200,0.005,True,0.05)
+        self.motor_conectado.motor_go(direcao,"1/4",qtd_passos_mover,0.005,True,0.05)
         return (qtd_passos_mover*self.angulo_por_passo)
+    
+    def translacao(self, deslocamento):
+        if (deslocamento == 0):
+            return print("sem movimentacao")
+        elif (deslocamento > 0):
+            direcao = True
+        elif (deslocamento < 0):
+            direcao = False
+        qtd_passos_mover = int(abs(deslocamento)/self.deslocamento_por_passo)
+        self.motor_conectado.motor_go(direcao,"1/4",qtd_passos_mover,0.005,True,0.05)
+        return (qtd_passos_mover*self.deslocamento_por_passo)
 
 
 def main(args=None):
     try: 
-        MotorBase = MotorHandle(1)
-        MotorBase.rotacao(0)
-        MotorBase = MotorHandle(2)
-        MotorBase.rotacao(0)
-        MotorBase = MotorHandle(3)
-        MotorBase.rotacao(360)
-        MotorBase = MotorHandle(4)
-        MotorBase.rotacao(0)
+        Motor = MotorHandle(2)
+        Motor.rotacao(360)
         gpio.cleanup()
     except Exception as e:
         gpio.cleanup()

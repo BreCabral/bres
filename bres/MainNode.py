@@ -28,8 +28,9 @@ gpio.output(potencia, gpio.HIGH)
 
 class MotorHandle():
 
-    def __init__(self, motor=1, angulo_por_passo=0.45):
+    def __init__(self, motor=1, angulo_por_passo=0.45, deslocamento_por_passo=0.01):
         self.angulo_por_passo = angulo_por_passo
+        self.deslocamento_por_passo = deslocamento_por_passo
         self.step = m1_step
         self.dir = m1_dir
         self.conectarGPIO(motor)
@@ -64,6 +65,17 @@ class MotorHandle():
         qtd_passos_mover = int(abs(angulo)/self.angulo_por_passo)
         self.motor_conectado.motor_go(direcao,"1/4",qtd_passos_mover,0.005,False,0.05)
         return (qtd_passos_mover*self.angulo_por_passo*mul_dir)
+    
+    def translacao(self, deslocamento):
+        if (deslocamento == 0):
+            return 0
+        elif (deslocamento > 0):
+            direcao = True
+        elif (deslocamento < 0):
+            direcao = False
+        qtd_passos_mover = int(abs(deslocamento)/self.deslocamento_por_passo)
+        self.motor_conectado.motor_go(direcao,"1/4",qtd_passos_mover,0.005,True,0.05)
+        return (qtd_passos_mover*self.deslocamento_por_passo)
 
 
 class MinimalSubscriber(Node):
@@ -78,7 +90,7 @@ class MinimalSubscriber(Node):
         self.subscription  # prevent unused variable warning
 
         self.motor1 = MotorHandle(motor=1, angulo_por_passo=(0.45/4))
-        self.motor2 = MotorHandle(motor=2, angulo_por_passo=(0.45))
+        self.motor2 = MotorHandle(motor=2, deslocamento_por_passo=(0.01))
         self.motor3 = MotorHandle(motor=3, angulo_por_passo=(0.45/4))
         self.motor4 = MotorHandle(motor=4, angulo_por_passo=(0.45/4))
 
@@ -94,8 +106,8 @@ class MinimalSubscriber(Node):
 
     def listener_callback(self, msg):
 
-        self.m1_pos_goal = self.rad_to_deg(msg.position[0])
-        self.m2_pos_goal = self.rad_to_deg(msg.position[1])
+        self.m1_pos_goal = self.rad_to_deg(-1*msg.position[0])
+        self.m2_pos_goal = self.m_to_mm(msg.position[1])
         self.m3_pos_goal = self.rad_to_deg(msg.position[2])
         self.m4_pos_goal = self.rad_to_deg(msg.position[3])
 
@@ -105,13 +117,17 @@ class MinimalSubscriber(Node):
         diferenca_m4 = (self.m4_pos_goal-self.m4_pos_atual)
 
         self.m1_pos_atual += self.motor1.rotacao(diferenca_m1)
-        self.m2_pos_atual += self.motor1.rotacao(diferenca_m2)
-        self.m3_pos_atual += self.motor1.rotacao(diferenca_m3)
-        self.m4_pos_atual += self.motor1.rotacao(diferenca_m4)
+        self.m2_pos_atual += self.motor2.translacao(diferenca_m2)
+        self.m3_pos_atual += self.motor3.rotacao(diferenca_m3)
+        self.m4_pos_atual += self.motor4.rotacao(diferenca_m4)
 
     def rad_to_deg(self, rad):
         deg = (rad*180)/3.14159
         return deg
+    
+    def m_to_mm(self, m):
+        mm = m*1000
+        return mm
 
 
 def main(args=None):
